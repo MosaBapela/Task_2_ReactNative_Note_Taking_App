@@ -1,37 +1,69 @@
 // src/screens/notes/EditNoteScreen.tsx
 
-import { RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { CATEGORY_COLORS, COLORS } from '../../constants/colors';
-import { Category, RootStackParamList } from '../../types';
-import { updateNote } from '../../utils/storage';
+import { Category, Note } from '../../types';
+import { getCurrentUser, getNotes, updateNote } from '../../utils/storage';
 
-type EditNoteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'EditNote'>;
-type EditNoteScreenRouteProp = RouteProp<RootStackParamList, 'EditNote'>;
+const EditNoteScreen: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useLocalSearchParams<{ note?: string; id?: string }>();
+  const [note, setNote] = useState<Note | null>(null);
+  const [title, setTitle] = useState<string>('');
+  const [content, setContent] = useState<string>('');
+  const [category, setCategory] = useState<Category>('personal');
 
-interface EditNoteScreenProps {
-  navigation: EditNoteScreenNavigationProp;
-  route: EditNoteScreenRouteProp;
-}
-
-const EditNoteScreen: React.FC<EditNoteScreenProps> = ({ route, navigation }) => {
-  const { note } = route.params;
-  
-  const [title, setTitle] = useState<string>(note.title || '');
-  const [content, setContent] = useState<string>(note.content);
-  const [category, setCategory] = useState<Category>(note.category);
+  useEffect(() => {
+    const loadNote = async () => {
+      if (searchParams.note) {
+        try {
+          const parsedNote = JSON.parse(decodeURIComponent(searchParams.note));
+          setNote(parsedNote);
+          setTitle(parsedNote.title || '');
+          setContent(parsedNote.content);
+          setCategory(parsedNote.category);
+        } catch (error) {
+          console.error('Error parsing note:', error);
+          Alert.alert('Error', 'Invalid note data');
+          router.back();
+        }
+      } else if (searchParams.id) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          Alert.alert('Error', 'User not logged in');
+          router.back();
+          return;
+        }
+        const notes = await getNotes(currentUser);
+        const foundNote = notes.find(n => n.id === searchParams.id);
+        if (foundNote) {
+          setNote(foundNote);
+          setTitle(foundNote.title || '');
+          setContent(foundNote.content);
+          setCategory(foundNote.category);
+        } else {
+          Alert.alert('Error', 'Note not found');
+          router.back();
+        }
+      } else {
+        Alert.alert('Error', 'No note data provided');
+        router.back();
+      }
+    };
+    loadNote();
+  }, [searchParams.note, searchParams.id, router]);
 
   const handleUpdate = async (): Promise<void> => {
     if (!content.trim()) {
@@ -46,15 +78,21 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = ({ route, navigation }) =>
     });
 
     if (result.success) {
-      Alert.alert('Success', 'Note updated successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      router.back();
     } else {
       Alert.alert('Error', 'Failed to update note');
     }
   };
 
   const categories: Category[] = ['work', 'study', 'personal'];
+
+  if (!note) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -111,7 +149,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = ({ route, navigation }) =>
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>

@@ -181,11 +181,16 @@ export const updateNote = async (noteId: string, updates: Partial<Note>): Promis
 // Delete a note
 export const deleteNote = async (noteId: string): Promise<StorageResult> => {
   try {
+    console.log('deleteNote called with noteId:', noteId);
     const notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
     const notes: Note[] = notesJson ? JSON.parse(notesJson) : [];
-    
+    console.log('Current notes count before deletion:', notes.length);
+
     const filteredNotes = notes.filter(n => n.id !== noteId);
+    console.log('Notes count after filtering:', filteredNotes.length);
+
     await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filteredNotes));
+    console.log('Note deleted successfully');
     return { success: true };
   } catch (error) {
     console.error('Error deleting note:', error);

@@ -1,7 +1,7 @@
 // src/components/NoteCard.tsx
 
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CATEGORY_COLORS, COLORS } from '../constants/colors';
 import { Note } from '../types';
 
@@ -27,20 +27,9 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onDelete }) => {
     });
   };
 
-  // Handle delete with confirmation
+  // Handle delete directly
   const handleDelete = (): void => {
-    Alert.alert(
-      'Delete Note',
-      'Are you sure you want to delete this note?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: () => onDelete(note.id)
-        },
-      ]
-    );
+    onDelete(note.id);
   };
 
   // Truncate long content for preview

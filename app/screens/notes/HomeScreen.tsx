@@ -40,8 +40,15 @@ const HomeScreen: React.FC = () => {
     if (currentUser) {
       const userNotes = await getNotes(currentUser);
       setNotes(userNotes);
-      setFilteredNotes(sortNotes(userNotes, sortBy));
-      
+
+      // Update filtered notes based on current search and sort settings
+      if (searchQuery.trim() === '') {
+        setFilteredNotes(sortNotes(userNotes, sortBy));
+      } else {
+        const results = await searchNotes(currentUser, searchQuery);
+        setFilteredNotes(sortNotes(results, sortBy));
+      }
+
       const counts: Record<Category, number> = {
         work: userNotes.filter(n => n.category === 'work').length,
         study: userNotes.filter(n => n.category === 'study').length,

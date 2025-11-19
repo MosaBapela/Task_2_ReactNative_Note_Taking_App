@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -48,13 +49,19 @@ const CategoryNotesScreen: React.FC<CategoryNotesScreenProps> = ({ route, naviga
     if (navigation) {
       navigation.navigate('EditNote', { note });
     } else {
-      router.push('/notes/edit' as any);
+      router.push(`/notes/edit?note=${encodeURIComponent(JSON.stringify(note))}` as any);
     }
   };
 
   const handleDeleteNote = async (noteId: string): Promise<void> => {
-    await deleteNote(noteId);
-    loadNotes();
+    const result = await deleteNote(noteId);
+
+    if (result.success) {
+      loadNotes();
+      Alert.alert('Success', 'Note deleted successfully');
+    } else {
+      Alert.alert('Error', 'Failed to delete note');
+    }
   };
 
   return (
