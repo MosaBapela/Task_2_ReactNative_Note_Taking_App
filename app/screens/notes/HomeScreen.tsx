@@ -1,30 +1,24 @@
 // src/screens/notes/HomeScreen.tsx
 
-import { useFocusEffect } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import CategoryCard from '../../components/CategoryCard';
 import NoteCard from '../../components/NoteCard';
 import { COLORS } from '../../constants/colors';
-import { Category, Note, RootStackParamList, SortBy } from '../../types';
+import { Category, Note, SortBy } from '../../types';
 import { deleteNote, getCurrentUser, getNotes, searchNotes, sortNotes } from '../../utils/storage';
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Main'>;
-
-interface HomeScreenProps {
-  navigation: HomeScreenNavigationProp;
-}
-
-const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+const HomeScreen: React.FC = () => {
+  const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -77,11 +71,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const handleCategoryPress = (category: Category): void => {
-    navigation.navigate('CategoryNotes', { category });
+    router.push(`/notes/category?category=${category}`);
   };
 
   const handleEditNote = (note: Note): void => {
-    navigation.navigate('EditNote', { note });
+    router.push(`/notes/edit?id=${note.id}`);
   };
 
   const handleDeleteNote = async (noteId: string): Promise<void> => {
@@ -101,7 +95,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <Text style={styles.headerTitle}>My Notes</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate('AddNote')}
+          onPress={() => router.push('/notes/add')}
         >
           <Text style={styles.addButtonText}>+ Add Note</Text>
         </TouchableOpacity>

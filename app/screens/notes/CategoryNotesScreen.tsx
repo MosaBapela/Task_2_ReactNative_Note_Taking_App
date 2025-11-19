@@ -2,12 +2,13 @@
 
 import { RouteProp, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import NoteCard from '../../components/NoteCard';
 import { CATEGORY_COLORS, COLORS } from '../../constants/colors';
@@ -18,12 +19,14 @@ type CategoryNotesScreenNavigationProp = StackNavigationProp<RootStackParamList,
 type CategoryNotesScreenRouteProp = RouteProp<RootStackParamList, 'CategoryNotes'>;
 
 interface CategoryNotesScreenProps {
-  navigation: CategoryNotesScreenNavigationProp;
-  route: CategoryNotesScreenRouteProp;
+  navigation?: CategoryNotesScreenNavigationProp;
+  route?: CategoryNotesScreenRouteProp;
 }
 
 const CategoryNotesScreen: React.FC<CategoryNotesScreenProps> = ({ route, navigation }) => {
-  const { category } = route.params;
+  const router = useRouter();
+  const searchParams = useLocalSearchParams<{ category: string }>();
+  const category = route?.params?.category || searchParams.category;
   const [notes, setNotes] = useState<Note[]>([]);
 
   useFocusEffect(
@@ -42,7 +45,11 @@ const CategoryNotesScreen: React.FC<CategoryNotesScreenProps> = ({ route, naviga
   };
 
   const handleEditNote = (note: Note): void => {
-    navigation.navigate('EditNote', { note });
+    if (navigation) {
+      navigation.navigate('EditNote', { note });
+    } else {
+      router.push('/notes/edit' as any);
+    }
   };
 
   const handleDeleteNote = async (noteId: string): Promise<void> => {
@@ -52,7 +59,7 @@ const CategoryNotesScreen: React.FC<CategoryNotesScreenProps> = ({ route, naviga
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: CATEGORY_COLORS[category] }]}>
+      <View style={[styles.header, { backgroundColor: CATEGORY_COLORS[category as keyof typeof CATEGORY_COLORS] }]}>
         <Text style={styles.headerTitle}>
           {category.charAt(0).toUpperCase() + category.slice(1)} Notes
         </Text>

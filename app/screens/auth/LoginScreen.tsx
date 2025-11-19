@@ -1,27 +1,21 @@
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
-import { AuthStackParamList } from '../../types';
 import { loginUser } from '../../utils/auth';
 
-type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'>;
-
-interface LoginScreenProps {
-  navigation: LoginScreenNavigationProp;
-}
-
-const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+const LoginScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -38,7 +32,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     if (result.success) {
       Alert.alert('Success', result.message || 'Logged in', [
-        { text: 'OK' },
+        { text: 'OK', onPress: () => router.replace('/(tabs)') },
       ]);
     } else {
       Alert.alert('Login Failed', result.error || 'Unknown error');

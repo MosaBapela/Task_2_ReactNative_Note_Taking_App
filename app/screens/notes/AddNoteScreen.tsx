@@ -1,29 +1,24 @@
 // src/screens/notes/AddNoteScreen.tsx
 
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { CATEGORY_COLORS, COLORS } from '../../constants/colors';
-import { Category, RootStackParamList } from '../../types';
+import { Category } from '../../types';
 import { getCurrentUser, saveNote } from '../../utils/storage';
 
-type AddNoteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'AddNote'>;
-
-interface AddNoteScreenProps {
-  navigation: AddNoteScreenNavigationProp;
-}
-
-const AddNoteScreen: React.FC<AddNoteScreenProps> = ({ navigation }) => {
+const AddNoteScreen: React.FC = () => {
+  const router = useRouter();
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [category, setCategory] = useState<Category>('personal');
@@ -113,7 +108,7 @@ const AddNoteScreen: React.FC<AddNoteScreenProps> = ({ navigation }) => {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()}
         >
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
