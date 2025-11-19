@@ -43,9 +43,7 @@ const AddNoteScreen: React.FC = () => {
     });
 
     if (result.success) {
-      Alert.alert('Success', 'Note saved successfully', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      router.back();
     } else {
       Alert.alert('Error', 'Failed to save note');
     }
