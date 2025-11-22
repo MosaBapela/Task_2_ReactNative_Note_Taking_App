@@ -1,10 +1,20 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import { getCurrentUser } from '../utils/storage';
 
 export default function Register() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Register Screen</Text>
-    </View>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        router.replace('/(tabs)');
+      }
+    };
+    checkAuth();
+  }, []);
+
+  return <RegisterScreen />;
 }

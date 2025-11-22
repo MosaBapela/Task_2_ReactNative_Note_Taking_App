@@ -8,6 +8,7 @@ import { Note, SortBy, StorageResult, User } from '../types';
 const STORAGE_KEYS = {
   USERS: '@users',
   CURRENT_USER: '@currentUser',
+  SESSION_START: '@sessionStart',
   NOTES: '@notes',
 } as const;
 
@@ -16,7 +17,11 @@ export const saveUser = async (user: User): Promise<StorageResult> => {
   try {
     const users = await getAllUsers();
     users.push(user);
-    await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    if (Platform.OS === 'web') {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    } else {
+      await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
     return { success: true };
   } catch (error) {
     console.error('Error saving user:', error);
@@ -27,7 +32,12 @@ export const saveUser = async (user: User): Promise<StorageResult> => {
 // Get all registered users
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const usersJson = await AsyncStorage.getItem(STORAGE_KEYS.USERS);
+    let usersJson;
+    if (Platform.OS === 'web') {
+      usersJson = localStorage.getItem(STORAGE_KEYS.USERS);
+    } else {
+      usersJson = await AsyncStorage.getItem(STORAGE_KEYS.USERS);
+    }
     return usersJson ? JSON.parse(usersJson) : [];
   } catch (error) {
     console.error('Error getting users:', error);
@@ -38,10 +48,13 @@ export const getAllUsers = async (): Promise<User[]> => {
 // Find a user by email
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
+    console.log('[getUserByEmail] Fetching user with email:', email);
     const users = await getAllUsers();
-    return users.find(user => user.email.toLowerCase() === email.toLowerCase()) || null;
+    const user = users.find(user => user.email.toLowerCase() === email.toLowerCase()) || null;
+    console.log('[getUserByEmail] Found user:', user);
+    return user;
   } catch (error) {
-    console.error('Error finding user:', error);
+    console.error('[getUserByEmail] Error finding user:', error);
     return null;
   }
 };
@@ -51,19 +64,23 @@ export const updateUser = async (email: string, updates: Partial<User>): Promise
   try {
     const users = await getAllUsers();
     const userIndex = users.findIndex(u => u.email === email);
-    
+
     if (userIndex === -1) {
       return { success: false, error: 'User not found' };
     }
-    
+
     users[userIndex] = { ...users[userIndex], ...updates };
-    await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    
+    if (Platform.OS === 'web') {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    } else {
+      await AsyncStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+
     const currentUser = await getCurrentUser();
     if (currentUser === email) {
       await setCurrentUser(updates.email || email);
     }
-    
+
     return { success: true, user: users[userIndex] };
   } catch (error) {
     console.error('Error updating user:', error);
@@ -72,18 +89,24 @@ export const updateUser = async (email: string, updates: Partial<User>): Promise
 };
 
 
-// Set current logged-in user
+// Set current logged-in user and session start time
 export const setCurrentUser = async (email: string): Promise<StorageResult> => {
   try {
+    console.log('[setCurrentUser] Setting current user email:', email);
+    const sessionStart = Date.now().toString();
     if (Platform.OS === 'web') {
       // For web, use localStorage as fallback
       localStorage.setItem(STORAGE_KEYS.CURRENT_USER, email);
+      localStorage.setItem(STORAGE_KEYS.SESSION_START, sessionStart);
+      console.log('[setCurrentUser] Current user set successfully on web.');
       return { success: true };
     }
     await AsyncStorage.setItem(STORAGE_KEYS.CURRENT_USER, email);
+    await AsyncStorage.setItem(STORAGE_KEYS.SESSION_START, sessionStart);
+    console.log('[setCurrentUser] Current user set successfully on native.');
     return { success: true };
   } catch (error) {
-    console.error('Error setting current user:', error);
+    console.error('[setCurrentUser] Error setting current user:', error);
     return { success: false, error: (error as Error).message };
   }
 };
@@ -122,7 +145,12 @@ export const logout = async (): Promise<StorageResult> => {
 // Get all notes for a specific user
 export const getNotes = async (userEmail: string): Promise<Note[]> => {
   try {
-    const notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    let notesJson;
+    if (Platform.OS === 'web') {
+      notesJson = localStorage.getItem(STORAGE_KEYS.NOTES);
+    } else {
+      notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    }
     const allNotes: Note[] = notesJson ? JSON.parse(notesJson) : [];
     return allNotes.filter(note => note.userEmail === userEmail);
   } catch (error) {
@@ -134,18 +162,27 @@ export const getNotes = async (userEmail: string): Promise<Note[]> => {
 // Save a new note
 export const saveNote = async (note: Omit<Note, 'id' | 'dateAdded' | 'dateModified'>): Promise<StorageResult> => {
   try {
-    const notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    let notesJson;
+    if (Platform.OS === 'web') {
+      notesJson = localStorage.getItem(STORAGE_KEYS.NOTES);
+    } else {
+      notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    }
     const notes: Note[] = notesJson ? JSON.parse(notesJson) : [];
-    
+
     const newNote: Note = {
       ...note,
       id: Date.now().toString(),
       dateAdded: new Date().toISOString(),
       dateModified: new Date().toISOString(),
     };
-    
+
     notes.push(newNote);
-    await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+    if (Platform.OS === 'web') {
+      localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+    } else {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+    }
     return { success: true, note: newNote };
   } catch (error) {
     console.error('Error saving note:', error);
@@ -156,21 +193,30 @@ export const saveNote = async (note: Omit<Note, 'id' | 'dateAdded' | 'dateModifi
 // Update an existing note
 export const updateNote = async (noteId: string, updates: Partial<Note>): Promise<StorageResult> => {
   try {
-    const notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    let notesJson;
+    if (Platform.OS === 'web') {
+      notesJson = localStorage.getItem(STORAGE_KEYS.NOTES);
+    } else {
+      notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    }
     const notes: Note[] = notesJson ? JSON.parse(notesJson) : [];
-    
+
     const noteIndex = notes.findIndex(n => n.id === noteId);
     if (noteIndex === -1) {
       return { success: false, error: 'Note not found' };
     }
-    
+
     notes[noteIndex] = {
       ...notes[noteIndex],
       ...updates,
       dateModified: new Date().toISOString(),
     };
-    
-    await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+
+    if (Platform.OS === 'web') {
+      localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+    } else {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+    }
     return { success: true, note: notes[noteIndex] };
   } catch (error) {
     console.error('Error updating note:', error);
@@ -182,14 +228,23 @@ export const updateNote = async (noteId: string, updates: Partial<Note>): Promis
 export const deleteNote = async (noteId: string): Promise<StorageResult> => {
   try {
     console.log('deleteNote called with noteId:', noteId);
-    const notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    let notesJson;
+    if (Platform.OS === 'web') {
+      notesJson = localStorage.getItem(STORAGE_KEYS.NOTES);
+    } else {
+      notesJson = await AsyncStorage.getItem(STORAGE_KEYS.NOTES);
+    }
     const notes: Note[] = notesJson ? JSON.parse(notesJson) : [];
     console.log('Current notes count before deletion:', notes.length);
 
     const filteredNotes = notes.filter(n => n.id !== noteId);
     console.log('Notes count after filtering:', filteredNotes.length);
 
-    await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filteredNotes));
+    if (Platform.OS === 'web') {
+      localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filteredNotes));
+    } else {
+      await AsyncStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(filteredNotes));
+    }
     console.log('Note deleted successfully');
     return { success: true };
   } catch (error) {
@@ -234,10 +289,47 @@ export const sortNotes = (notes: Note[], sortBy: SortBy = 'dateDesc'): Note[] =>
 };
 
 
+// Get session start time
+export const getSessionStart = async (): Promise<number | null> => {
+  try {
+    let sessionStart;
+    if (Platform.OS === 'web') {
+      sessionStart = localStorage.getItem(STORAGE_KEYS.SESSION_START);
+    } else {
+      sessionStart = await AsyncStorage.getItem(STORAGE_KEYS.SESSION_START);
+    }
+    return sessionStart ? parseInt(sessionStart, 10) : null;
+  } catch (error) {
+    console.error('Error getting session start:', error);
+    return null;
+  }
+};
+
+// Check if session is expired (5 minutes = 300000 ms)
+export const isSessionExpired = async (): Promise<boolean> => {
+  try {
+    const sessionStart = await getSessionStart();
+    if (!sessionStart) return true;
+
+    const now = Date.now();
+    const sessionDuration = now - sessionStart;
+    const maxSessionTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    return sessionDuration > maxSessionTime;
+  } catch (error) {
+    console.error('Error checking session expiration:', error);
+    return true;
+  }
+};
+
 // Clear all storage (useful for development/testing)
 export const clearAllStorage = async (): Promise<StorageResult> => {
   try {
-    await AsyncStorage.clear();
+    if (Platform.OS === 'web') {
+      localStorage.clear();
+    } else {
+      await AsyncStorage.clear();
+    }
     return { success: true };
   } catch (error) {
     console.error('Error clearing storage:', error);

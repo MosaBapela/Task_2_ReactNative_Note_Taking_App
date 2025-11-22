@@ -77,36 +77,45 @@ export const registerUser = async (
 
 export const loginUser = async (email: string, password: string): Promise<AuthResult> => {
   try {
-   
+    console.log('[loginUser] Start login for email:', email);
+
     if (!email || !password) {
+      console.warn('[loginUser] Missing email or password');
       return { success: false, error: 'Please enter email and password' };
     }
-    
-   
+
     const user = await getUserByEmail(email);
-    
+    console.log('[loginUser] Retrieved user from storage:', user);
+
     if (!user) {
+      console.warn('[loginUser] User not found for email:', email);
       return { success: false, error: 'Invalid email or password' };
     }
-    
-    
+
     if (user.password !== password) {
+      console.warn('[loginUser] Password mismatch for email:', email);
       return { success: false, error: 'Invalid email or password' };
     }
-    
-    
-    await setCurrentUser(user.email);
-    
-    return { 
-      success: true, 
+
+    const setCurrentUserResult = await setCurrentUser(user.email);
+    console.log('[loginUser] setCurrentUser result:', setCurrentUserResult);
+
+    if (!setCurrentUserResult.success) {
+      console.error('[loginUser] Failed to set current user:', setCurrentUserResult.error);
+      return { success: false, error: 'Failed to set current user' };
+    }
+
+    console.log('[loginUser] Login successful for email:', email);
+    return {
+      success: true,
       message: 'Login successful!',
       user: {
         email: user.email,
         username: user.username,
-      }
+      },
     };
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[loginUser] Login error:', error);
     return { success: false, error: 'Login failed. Please try again.' };
   }
 };

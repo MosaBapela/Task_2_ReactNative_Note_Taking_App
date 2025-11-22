@@ -1,34 +1,28 @@
 // src/screens/auth/RegisterScreen.tsx
 
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
-import { AuthStackParamList } from '../../types';
-import { registerUser } from '../../utils/auth';
+import { loginUser, registerUser } from '../../utils/auth';
 
 /**
  * RegisterScreen Component
  * Allows new users to create an account
  */
 
-type RegisterScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Register'>;
-
-interface RegisterScreenProps {
-  navigation: RegisterScreenNavigationProp;
-}
-
-const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
+const RegisterScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -53,16 +47,19 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert(
-        'Success',
-        result.message || 'Registration successful',
-        [
+      // Automatically log in the user after successful registration
+      const loginResult = await loginUser(email, password);
+      if (loginResult.success) {
+        // Immediately navigate to home page without alert
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('Registration successful', 'Please log in with your credentials', [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Login'),
+            onPress: () => router.push('/auth/login'),
           },
-        ]
-      );
+        ]);
+      }
     } else {
       Alert.alert('Registration Failed', result.error || 'Unknown error');
     }
@@ -147,7 +144,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => router.push('/auth/login')}>
               <Text style={styles.linkText}>Login</Text>
             </TouchableOpacity>
           </View>

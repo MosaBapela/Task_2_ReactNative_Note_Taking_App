@@ -1,20 +1,22 @@
 // src/screens/profile/ProfileScreen.tsx
 
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
 import { User } from '../../types';
 import { getCurrentUser, getUserByEmail, logout, updateUser } from '../../utils/storage';
 
 const ProfileScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
@@ -73,21 +75,9 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleLogout = (): void => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
-    );
+  const handleLogout = async (): Promise<void> => {
+    await logout();
+    router.replace('/auth/login');
   };
 
   return (
