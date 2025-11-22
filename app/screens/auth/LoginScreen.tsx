@@ -31,9 +31,7 @@ const LoginScreen: React.FC = () => {
     setLoading(false);
 
     if (result.success) {
-      Alert.alert('Success', result.message || 'Logged in', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)') },
-      ]);
+      router.replace('/(tabs)');
     } else {
       Alert.alert('Login Failed', result.error || 'Unknown error');
     }
