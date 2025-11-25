@@ -1,15 +1,19 @@
-import { Text, View } from "react-native";
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
+import { clearAllStorage } from './utils/storage';
 
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      // Clear all saved data including users
+      await clearAllStorage();
+      // Always redirect to login page
+      router.replace('/auth/login');
+    };
+    initializeApp();
+  }, []);
+
+  return null;
 }
