@@ -1,50 +1,44 @@
-# Welcome to your Expo app 👋
+## Task 2 – React Native Note Taking App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a mobile note‑taking application built with **React Native** and **Expo Router**. It allows a user to register, log in, and manage notes organised into three categories: **work**, **study**, and **personal**. Notes are stored locally on the device using AsyncStorage, so the app works fully offline on a single device.
 
-## Get started
+Main features:
 
-1. Install dependencies
+- Local email/username/password registration and login
+- Add, edit, delete, and search notes
+- Category‑based organisation and category views
+- Simple profile management for the current user
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## 📱 Download the APK
 
-   ```bash
-   npx expo start
-   ```
+You can download the Android `.apk` build from Expo at this link:
 
-In the output, you'll find options to open the app in a
+https://expo.dev/accounts/mossman2/projects/Task_2_ReactNative_Note_Taking_App/builds/9e78e5e1-a25f-4066-badd-ba7bf66f23af
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Download the file on your Android device, open it, and follow the prompts to install. You may need to enable installation from unknown sources in your device settings.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## �‍💻 How to Run the Project Locally
 
-When you're ready, run:
+From the project root, install dependencies and start the Expo development server:
 
-```bash
-npm run reset-project
+```powershell
+npm install
+npm start       # or: npm run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This will open Expo Dev Tools. From there you can:
 
-## Learn more
+- Run the app on an **Android emulator** or connected Android device
+- Run the app in **Expo Go** on your phone by scanning the QR code
 
-To learn more about developing your project with Expo, look at the following resources:
+You can also use the convenience scripts:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```powershell
+npm run android   # Start and open on Android emulator/device
+npm run ios       # Start and open on iOS simulator (macOS only)
+npm run web       # Run the web version
+```
